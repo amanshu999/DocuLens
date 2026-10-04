@@ -123,7 +123,7 @@ test("6. Citation Validation — approves legitimate citations pointing to real 
       documentId: "doc_1",
       documentName: "Agreement.pdf",
       pageNumber: 3,
-      text: "The supplier will deliver components within 14 business days.",
+      text: "The supplier will deliver components within 14 business days from order placement.",
       relevanceScore: 10,
     },
   ];
@@ -131,7 +131,7 @@ test("6. Citation Validation — approves legitimate citations pointing to real 
   const rawCitations = [
     {
       passageId: "passage_1",
-      excerpt: "deliver components within 14 business days",
+      excerpt: "deliver components within 14 business days from order placement",
     },
   ];
 
@@ -141,10 +141,10 @@ test("6. Citation Validation — approves legitimate citations pointing to real 
   assert.equal(verified[0].passageId, "passage_1");
   assert.equal(verified[0].documentName, "Agreement.pdf");
   assert.equal(verified[0].pageNumber, 3);
-  assert.equal(verified[0].excerpt, "deliver components within 14 business days");
+  assert.equal(verified[0].excerpt, "deliver components within 14 business days from order placement");
 });
 
-test("7. Citation Validation — rejects hallucinations and non-existent passage IDs", () => {
+test("7. Citation Validation — rejects fabricated passage IDs", () => {
   const mockPassages = [
     {
       id: "real_passage_1",
@@ -158,19 +158,72 @@ test("7. Citation Validation — rejects hallucinations and non-existent passage
   const hallucinatedCitations = [
     {
       passageId: "fake_passage_999", // Non-existent passage ID
-      excerpt: "Fabricated statement not in document",
-    },
-    {
-      passageId: "real_passage_1",
-      excerpt: "Completely made up text that does not exist anywhere in real_passage_1 at all",
+      excerpt: "Standard terms and conditions apply.",
     },
   ];
 
   const verified = validateAndEnforceCitations(hallucinatedCitations, mockPassages);
-  assert.equal(verified.length, 0, "Hallucinated citations must be completely rejected");
+  assert.equal(verified.length, 0, "Non-existent passage IDs must be completely rejected");
 });
 
-test("8. Groq Client — fails safely with clear error if GROQ_API_KEY is missing", async () => {
+test("8. Citation Validation — rejects mismatched / altered / fabricated quotations", () => {
+  const mockPassages = [
+    {
+      id: "real_passage_1",
+      documentId: "doc_1",
+      documentName: "Financials.pdf",
+      pageNumber: 4,
+      text: "Total operating expenses for FY2024 were $8.5 million, representing a 12% decrease.",
+    },
+  ];
+
+  const fabricatedQuotes = [
+    {
+      passageId: "real_passage_1",
+      // Modified dollar amount and percentage (subtle hallucination)
+      excerpt: "Total operating expenses for FY2024 were $18.5 million, representing a 20% increase.",
+    },
+    {
+      passageId: "real_passage_1",
+      // Disconnected words
+      excerpt: "operating decrease random hallucinated statement",
+    },
+  ];
+
+  const verified = validateAndEnforceCitations(fabricatedQuotes, mockPassages);
+  assert.equal(verified.length, 0, "Fabricated or altered quotes must be rejected");
+});
+
+test("9. Citation Validation — preserves page numbers only for PDFs and never for text files", () => {
+  const mockPassages = [
+    {
+      id: "p_pdf",
+      documentId: "doc_pdf",
+      documentName: "Report.pdf",
+      pageNumber: 5,
+      text: "PDF verified claim text content.",
+    },
+    {
+      id: "p_txt",
+      documentId: "doc_txt",
+      documentName: "Readme.txt",
+      pageNumber: undefined,
+      text: "TXT verified claim text content.",
+    },
+  ];
+
+  const raw = [
+    { passageId: "p_pdf", excerpt: "PDF verified claim text content." },
+    { passageId: "p_txt", excerpt: "TXT verified claim text content." },
+  ];
+
+  const verified = validateAndEnforceCitations(raw, mockPassages);
+  assert.equal(verified.length, 2);
+  assert.equal(verified[0].pageNumber, 5, "PDF citation must preserve real page number");
+  assert.equal(verified[1].pageNumber, undefined, "TXT citation must not invent page number");
+});
+
+test("10. Groq Client — fails safely with clear error if GROQ_API_KEY is missing", async () => {
   const mockPassages = [
     {
       id: "p1",
@@ -180,7 +233,6 @@ test("8. Groq Client — fails safely with clear error if GROQ_API_KEY is missin
     },
   ];
 
-  // Pass empty string as API key
   await assert.rejects(
     async () => {
       await executeGroqInvestigation("test query", mockPassages, "");
@@ -189,7 +241,7 @@ test("8. Groq Client — fails safely with clear error if GROQ_API_KEY is missin
   );
 });
 
-test("9. Groq Client — handles empty passages with immediate insufficient evidence result", async () => {
+test("11. Groq Client — handles empty passages with immediate insufficient evidence result", async () => {
   const result = await executeGroqInvestigation("test query", [], "mock-key");
 
   assert.equal(result.isInsufficientEvidence, true);

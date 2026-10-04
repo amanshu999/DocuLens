@@ -19,8 +19,20 @@ export interface GroqAnswerRawResponse {
 }
 
 /**
+ * Normalizes text for robust excerpt matching by removing excess whitespace and punctuation
+ */
+function normalizeForMatch(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[\r\n\t]+/g, " ")
+    .replace(/[^\w\s]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
  * Validates and verifies model-generated citations against real retrieved passages.
- * Filters out fabricated passage IDs or excerpts that do not exist in the source texts.
+ * Strictly filters out fabricated passage IDs or excerpts that do not exist in the source texts.
  */
 export function validateAndEnforceCitations(
   rawCitations: Array<{ passageId: string; excerpt: string }> | undefined,
@@ -41,7 +53,7 @@ export function validateAndEnforceCitations(
   const verifiedCitations: EvidenceCitation[] = [];
 
   rawCitations.forEach((raw, index) => {
-    if (!raw.passageId || !raw.excerpt) return;
+    if (!raw.passageId || !raw.excerpt || typeof raw.excerpt !== "string") return;
 
     const matchedPassage = passageMap.get(raw.passageId);
     if (!matchedPassage) {
@@ -49,16 +61,27 @@ export function validateAndEnforceCitations(
       return;
     }
 
-    const passageTextLower = matchedPassage.text.toLowerCase();
-    const excerptLower = raw.excerpt.toLowerCase().trim();
+    const passageNorm = normalizeForMatch(matchedPassage.text);
+    const excerptNorm = normalizeForMatch(raw.excerpt);
 
-    // Check if excerpt exists in passage text (or substantial substring)
-    const existsInPassage =
-      passageTextLower.includes(excerptLower) ||
-      excerptLower.split(/\s+/).filter((word) => word.length > 3 && passageTextLower.includes(word)).length >= 3;
+    if (!excerptNorm || excerptNorm.length < 5) {
+      return;
+    }
 
-    if (!existsInPassage && excerptLower.length > 20) {
-      // Excerpt is not in the passage -> Reject fabricated quote
+    // Check if contiguous normalized excerpt exists in normalized passage
+    const isContiguousMatch = passageNorm.includes(excerptNorm);
+
+    // If excerpt contains ellipses or multiple sentences, verify each substantial segment
+    const segments = raw.excerpt
+      .split(/\.\.\.|\n/)
+      .map((s) => normalizeForMatch(s))
+      .filter((s) => s.length >= 12);
+
+    const isSegmentMatch =
+      segments.length > 0 && segments.every((seg) => passageNorm.includes(seg));
+
+    if (!isContiguousMatch && !isSegmentMatch) {
+      // Excerpt is not in the source passage -> Reject mismatched / fabricated quote
       return;
     }
 
@@ -199,18 +222,43 @@ STRICT PROTOCOLS:
     // 5. Enforce Strict Server-Side Citation Validation
     const verifiedCitations = validateAndEnforceCitations(parsed.citations, passages);
 
-    const isInsufficient =
-      Boolean(parsed.isInsufficientEvidence) ||
-      (verifiedCitations.length === 0 && passages.length > 0 && parsed.answer.toLowerCase().includes("not found"));
+    const rawCitationsProvided = Array.isArray(parsed.citations) && parsed.citations.length > 0;
+    const allCitationsRejected = rawCitationsProvided && verifiedCitations.length === 0;
+
+    let isInsufficient = Boolean(parsed.isInsufficientEvidence);
+    let warningMessage = parsed.warningMessage;
+
+    // Safeguard 1: If model provided citations but all were rejected as fabricated or invalid
+    if (!isInsufficient && allCitationsRejected) {
+      isInsufficient = true;
+      warningMessage =
+        warningMessage ||
+        "The response referenced sources or citations that could not be verified against the extracted document passages.";
+    }
+    // Safeguard 2: If model indicates missing or inconclusive info in text
+    else if (!isInsufficient && verifiedCitations.length === 0 && passages.length > 0) {
+      const answerLower = (parsed.answer || "").toLowerCase();
+      if (
+        answerLower.includes("not found") ||
+        answerLower.includes("no information") ||
+        answerLower.includes("insufficient evidence") ||
+        answerLower.includes("cannot be determined")
+      ) {
+        isInsufficient = true;
+        warningMessage =
+          warningMessage ||
+          "The uploaded documents do not contain sufficient verified evidence to answer this question.";
+      }
+    }
 
     return {
       query,
       timestamp: new Date().toISOString(),
       answer: parsed.answer || "No response generated.",
       isInsufficientEvidence: isInsufficient,
-      warningMessage: parsed.warningMessage,
+      warningMessage,
       citations: verifiedCitations,
-      conflicts: [], // Conflict detection is Phase 4
+      conflicts: [],
       retrievedPassages: passages,
     };
   } catch (err: unknown) {
