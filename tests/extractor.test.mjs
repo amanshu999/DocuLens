@@ -115,7 +115,7 @@ function createValidDocx(textContent) {
   return Buffer.concat([...localHeaders, centralDirBuf, endRecord]);
 }
 
-test("1. TXT Extraction — extracts text and does NOT invent page numbers", async () => {
+test("1. TXT Extraction - extracts text and does NOT invent page numbers", async () => {
   const content = "DocuLens AI investigation agreement.\nSection 1: Scope of review.";
   const buffer = Buffer.from(content, "utf-8");
 
@@ -131,7 +131,7 @@ test("1. TXT Extraction — extracts text and does NOT invent page numbers", asy
   assert.equal(result.pageCount, undefined, "TXT documents must not have fake page numbers");
 });
 
-test("2. MD Extraction — extracts markdown text cleanly without fake page numbers", async () => {
+test("2. MD Extraction - extracts markdown text cleanly without fake page numbers", async () => {
   const content = "# Project Roadmap\n\n- Phase 1: Foundation\n- Phase 2: Document Extraction";
   const buffer = Buffer.from(content, "utf-8");
 
@@ -145,7 +145,7 @@ test("2. MD Extraction — extracts markdown text cleanly without fake page numb
   assert.equal(result.pageCount, undefined);
 });
 
-test("3. PDF Extraction — preserves page boundaries and 1-indexed page numbers", async () => {
+test("3. PDF Extraction - preserves page boundaries and 1-indexed page numbers", async () => {
   const page1Text = "Annual Financial Audit 2025: Net revenue reported $14.2M";
   const page2Text = "Executive Summary: Milestone delivery date moved to Q4";
   const pdfBuffer = createValidMultiPagePdf([page1Text, page2Text]);
@@ -171,7 +171,7 @@ test("3. PDF Extraction — preserves page boundaries and 1-indexed page numbers
   assert.ok(result.fullText.includes("[Page 2]"));
 });
 
-test("4. DOCX Extraction — extracts raw text from Word documents", async () => {
+test("4. DOCX Extraction - extracts raw text from Word documents", async () => {
   const docxText = "Contract Amendment #4: Delivery deadline extended to December 31.";
   const docxBuffer = createValidDocx(docxText);
 
@@ -185,7 +185,7 @@ test("4. DOCX Extraction — extracts raw text from Word documents", async () =>
   assert.equal(result.pageCount, undefined);
 });
 
-test("5. Unsupported File Extension — rejects with clear descriptive error", async () => {
+test("5. Unsupported File Extension - rejects with clear descriptive error", async () => {
   const buffer = Buffer.from("executable binary data", "utf-8");
 
   await assert.rejects(
@@ -199,7 +199,7 @@ test("5. Unsupported File Extension — rejects with clear descriptive error", a
   );
 });
 
-test("6. Oversized File (>25MB) — enforces server-side 25MB limit", async () => {
+test("6. Oversized File (>25MB) - enforces server-side 25MB limit", async () => {
   const buffer = Buffer.alloc(10);
   const oversizedBytes = 26 * 1024 * 1024; // 26 MB
 
@@ -214,7 +214,7 @@ test("6. Oversized File (>25MB) — enforces server-side 25MB limit", async () =
   );
 });
 
-test("7. Empty File (0 bytes) — rejects with clear error", async () => {
+test("7. Empty File (0 bytes) - rejects with clear error", async () => {
   const buffer = Buffer.alloc(0);
 
   await assert.rejects(
@@ -228,7 +228,7 @@ test("7. Empty File (0 bytes) — rejects with clear error", async () => {
   );
 });
 
-test("8. Blank / Whitespace-only Text File — rejects with clear error", async () => {
+test("8. Blank / Whitespace-only Text File - rejects with clear error", async () => {
   const buffer = Buffer.from("   \n\t  \n  ", "utf-8");
 
   await assert.rejects(
@@ -242,7 +242,7 @@ test("8. Blank / Whitespace-only Text File — rejects with clear error", async 
   );
 });
 
-test("9. Malformed / Corrupted PDF — catches error and returns descriptive message", async () => {
+test("9. Malformed / Corrupted PDF - catches error and returns descriptive message", async () => {
   const corruptBuffer = Buffer.from([0x25, 0x50, 0x44, 0x46, 0x00, 0xff, 0xaa, 0xbb]);
 
   await assert.rejects(
@@ -256,7 +256,7 @@ test("9. Malformed / Corrupted PDF — catches error and returns descriptive mes
   );
 });
 
-test("10. Malformed / Corrupted DOCX — catches error and returns descriptive message", async () => {
+test("10. Malformed / Corrupted DOCX - catches error and returns descriptive message", async () => {
   const corruptBuffer = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x00, 0x00, 0x00]);
 
   await assert.rejects(

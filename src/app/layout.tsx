@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DocuLens — Intelligent Document Investigator",
+  title: "DocuLens - Intelligent Document Investigator",
   description: "Cross-document research workspace with verified citations and contradiction analysis.",
 };
 

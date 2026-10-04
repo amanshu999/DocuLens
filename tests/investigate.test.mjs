@@ -11,7 +11,7 @@ import {
   resolveInvestigationStatus,
 } from "../src/lib/groq.ts";
 
-test("1. Passage Chunking — preserves real PDF page numbers", () => {
+test("1. Passage Chunking - preserves real PDF page numbers", () => {
   const mockPdfDoc = {
     id: "doc_pdf_1",
     name: "Q3_Report.pdf",
@@ -35,7 +35,7 @@ test("1. Passage Chunking — preserves real PDF page numbers", () => {
   assert.ok(passages[1].text.includes("$14.2M"));
 });
 
-test("2. Passage Chunking — TXT / MD documents do NOT invent page numbers", () => {
+test("2. Passage Chunking - TXT / MD documents do NOT invent page numbers", () => {
   const mockTxtDoc = {
     id: "doc_txt_1",
     name: "notes.txt",
@@ -53,7 +53,7 @@ test("2. Passage Chunking — TXT / MD documents do NOT invent page numbers", ()
   assert.equal(passages[0].documentName, "notes.txt");
 });
 
-test("3. Keyword Extraction — ignores common stop words", () => {
+test("3. Keyword Extraction - ignores common stop words", () => {
   const keywords = extractKeywords("What are the stated termination terms and penalty clauses in the contract?");
   assert.ok(keywords.includes("termination"));
   assert.ok(keywords.includes("terms"));
@@ -66,7 +66,7 @@ test("3. Keyword Extraction — ignores common stop words", () => {
   assert.ok(!keywords.includes("in"));
 });
 
-test("4. Passage Retrieval — ranks matching passages highest", () => {
+test("4. Passage Retrieval - ranks matching passages highest", () => {
   const mockDocs = [
     {
       id: "doc1",
@@ -100,7 +100,7 @@ test("4. Passage Retrieval — ranks matching passages highest", () => {
   assert.ok(result.passages[0].text.includes("Termination penalties"));
 });
 
-test("5. Passage Retrieval — reports no matching evidence for irrelevant query", () => {
+test("5. Passage Retrieval - reports no matching evidence for irrelevant query", () => {
   const mockDocs = [
     {
       id: "doc1",
@@ -117,7 +117,7 @@ test("5. Passage Retrieval — reports no matching evidence for irrelevant query
   assert.equal(result.hasMatchingEvidence, false);
 });
 
-test("6. Citation Validation — approves legitimate citations pointing to real passages", () => {
+test("6. Citation Validation - approves legitimate citations pointing to real passages", () => {
   const mockPassages = [
     {
       id: "passage_1",
@@ -145,7 +145,7 @@ test("6. Citation Validation — approves legitimate citations pointing to real 
   assert.equal(verified[0].excerpt, "deliver components within 14 business days from order placement");
 });
 
-test("7. Citation Validation — rejects fabricated passage IDs", () => {
+test("7. Citation Validation - rejects fabricated passage IDs", () => {
   const mockPassages = [
     {
       id: "real_passage_1",
@@ -167,7 +167,7 @@ test("7. Citation Validation — rejects fabricated passage IDs", () => {
   assert.equal(verified.length, 0, "Non-existent passage IDs must be completely rejected");
 });
 
-test("8. Citation Validation — rejects mismatched / altered / fabricated quotations", () => {
+test("8. Citation Validation - rejects mismatched / altered / fabricated quotations", () => {
   const mockPassages = [
     {
       id: "real_passage_1",
@@ -195,7 +195,7 @@ test("8. Citation Validation — rejects mismatched / altered / fabricated quota
   assert.equal(verified.length, 0, "Fabricated or altered quotes must be rejected");
 });
 
-test("9. Citation Validation — preserves page numbers only for PDFs and never for text files", () => {
+test("9. Citation Validation - preserves page numbers only for PDFs and never for text files", () => {
   const mockPassages = [
     {
       id: "p_pdf",
@@ -224,7 +224,7 @@ test("9. Citation Validation — preserves page numbers only for PDFs and never 
   assert.equal(verified[1].pageNumber, undefined, "TXT citation must not invent page number");
 });
 
-test("10. Groq Client — fails safely with clear error if GROQ_API_KEY is missing", async () => {
+test("10. Groq Client - fails safely with clear error if GROQ_API_KEY is missing", async () => {
   const mockPassages = [
     {
       id: "p1",
@@ -242,7 +242,7 @@ test("10. Groq Client — fails safely with clear error if GROQ_API_KEY is missi
   );
 });
 
-test("11. Groq Client — handles empty passages with immediate insufficient evidence result", async () => {
+test("11. Groq Client - handles empty passages with immediate insufficient evidence result", async () => {
   const result = await executeGroqInvestigation("test query", [], "mock-key");
 
   assert.equal(result.isInsufficientEvidence, true);
@@ -250,7 +250,7 @@ test("11. Groq Client — handles empty passages with immediate insufficient evi
   assert.ok(result.answer.includes("No matching information"));
 });
 
-test("12. Status Resolver — derives 'grounded' for supported answer with valid citations", () => {
+test("12. Status Resolver - derives 'grounded' for supported answer with valid citations", () => {
   const mockResult = {
     isInsufficientEvidence: false,
     citations: [{ id: "cit_1", excerpt: "Verified quote" }],
@@ -260,7 +260,7 @@ test("12. Status Resolver — derives 'grounded' for supported answer with valid
   assert.equal(status, "grounded", "Supported answer with valid citations must be resolved as 'grounded'");
 });
 
-test("13. Status Resolver — derives 'insufficient_evidence' when answer reports insufficient evidence", () => {
+test("13. Status Resolver - derives 'insufficient_evidence' when answer reports insufficient evidence", () => {
   const mockResult = {
     isInsufficientEvidence: true,
     citations: [],
@@ -270,7 +270,7 @@ test("13. Status Resolver — derives 'insufficient_evidence' when answer report
   assert.equal(status, "insufficient_evidence", "Insufficient evidence answer must NEVER be labelled 'grounded'");
 });
 
-test("14. Status Resolver — derives 'insufficient_evidence' when citations are empty/rejected even if API succeeded", () => {
+test("14. Status Resolver - derives 'insufficient_evidence' when citations are empty/rejected even if API succeeded", () => {
   const mockResultWithNoCitations = {
     isInsufficientEvidence: false,
     citations: [], // All citations failed validation or none provided
@@ -280,7 +280,7 @@ test("14. Status Resolver — derives 'insufficient_evidence' when citations are
   assert.equal(status, "insufficient_evidence", "An answer with 0 validated citations must be labelled 'insufficient_evidence'");
 });
 
-test("15. Status Resolver — derives 'error' for failed network / API requests", () => {
+test("15. Status Resolver - derives 'error' for failed network / API requests", () => {
   const status1 = resolveInvestigationStatus("error", null, "Network connection lost");
   assert.equal(status1, "error");
 

@@ -6,7 +6,7 @@ import {
   detectCrossDocumentConflicts,
 } from "../src/lib/conflicts.ts";
 
-test("1. Candidate Cross-Document Alignment — finds overlapping topics between different docs", () => {
+test("1. Candidate Cross-Document Alignment - finds overlapping topics between different docs", () => {
   const docA = {
     id: "doc_A",
     name: "Q3_Report.pdf",
@@ -38,7 +38,7 @@ test("1. Candidate Cross-Document Alignment — finds overlapping topics between
   assert.ok(candidatePairs[0].overlapScore >= 6);
 });
 
-test("2. Candidate Cross-Document Alignment — never pairs a document with itself", () => {
+test("2. Candidate Cross-Document Alignment - never pairs a document with itself", () => {
   const docA = {
     id: "doc_A",
     name: "DocA.txt",
@@ -54,7 +54,7 @@ test("2. Candidate Cross-Document Alignment — never pairs a document with itse
   assert.equal(candidatePairs.length, 0, "Must not generate conflict candidates for single document");
 });
 
-test("3. Conflict Validation — approves legitimate contradiction with real excerpts & page numbers", () => {
+test("3. Conflict Validation - approves legitimate contradiction with real excerpts & page numbers", () => {
   const passages = [
     {
       id: "pass_A_1",
@@ -101,7 +101,7 @@ test("3. Conflict Validation — approves legitimate contradiction with real exc
   assert.equal(verified[0].claimB.pageNumber, undefined, "DOCX must have undefined page number");
 });
 
-test("4. Conflict Validation — rejects fabricated passage IDs and fabricated quotes", () => {
+test("4. Conflict Validation - rejects fabricated passage IDs and fabricated quotes", () => {
   const passages = [
     {
       id: "pass_real_1",
@@ -162,7 +162,7 @@ test("4. Conflict Validation — rejects fabricated passage IDs and fabricated q
   assert.equal(verified.length, 0, "All hallucinated conflicts must be rejected");
 });
 
-test("5. Cross-Document Engine — safely returns guidance when < 2 documents exist", async () => {
+test("5. Cross-Document Engine - safely returns guidance when < 2 documents exist", async () => {
   const singleDoc = [
     {
       id: "doc1",
@@ -181,7 +181,7 @@ test("5. Cross-Document Engine — safely returns guidance when < 2 documents ex
   assert.ok(result.summary.includes("At least two"));
 });
 
-test("6. Cross-Document Engine — fails safely if GROQ_API_KEY is missing when pairs exist", async () => {
+test("6. Cross-Document Engine - fails safely if GROQ_API_KEY is missing when pairs exist", async () => {
   const docs = [
     {
       id: "doc1",

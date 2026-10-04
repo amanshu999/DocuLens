@@ -1,4 +1,4 @@
-# DocuLens AI — Intelligent Document Investigator
+# DocuLens AI - Intelligent Document Investigator
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.3.8-black?logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)](https://www.typescriptlang.org/)
@@ -7,7 +7,7 @@
 [![Model](https://img.shields.io/badge/Model-Qwen%2027B-purple)](https://groq.com/)
 [![Tests](https://img.shields.io/badge/Tests-31%2F31%20Passing-brightgreen)](#11-automated-testing-suite)
 
-> **ALGOTHON'26 — Problem Statement: ALG-AI-02 (Intelligent Document Investigator)**  
+> **ALGOTHON'26 - Problem Statement: ALG-AI-02 (Intelligent Document Investigator)**  
 > An evidence-grounded document analysis engine providing verifiable citations, real page-number tracking, cross-document conflict detection, and multi-turn inquiry history.
 
 ---
@@ -240,5 +240,5 @@ To verify DocuLens AI during hackathon evaluation:
 
 ## 📄 License & Attribution
 
-Built for **ALGOTHON'26 — Problem Statement ALG-AI-02**.  
+Built for **ALGOTHON'26 - Problem Statement ALG-AI-02**.  
 All rights reserved by the repository owner @amanshu999
