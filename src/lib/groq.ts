@@ -18,6 +18,29 @@ export interface GroqAnswerRawResponse {
   }>;
 }
 
+export type ResolvedInvestigationStatus = "pending" | "grounded" | "insufficient_evidence" | "error";
+
+/**
+ * Derives the verified investigation outcome status based on retrieval results,
+ * sufficiency flags, and validated supporting citations.
+ */
+export function resolveInvestigationStatus(
+  status: "pending" | "success" | "error",
+  result?: { isInsufficientEvidence?: boolean; citations?: Array<{ id: string; excerpt?: string }> } | null,
+  errorMessage?: string
+): ResolvedInvestigationStatus {
+  if (status === "pending") return "pending";
+  if (status === "error" || Boolean(errorMessage && !result)) return "error";
+  if (status === "success" && result) {
+    if (result.isInsufficientEvidence || !result.citations || result.citations.length === 0) {
+      return "insufficient_evidence";
+    }
+    return "grounded";
+  }
+  return "error";
+}
+
+
 /**
  * Normalizes text for robust excerpt matching by removing excess whitespace and punctuation
  */

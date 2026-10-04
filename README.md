@@ -1,36 +1,224 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DocuLens AI — Intelligent Document Investigator
 
-## Getting Started
+[![Next.js](https://img.shields.io/badge/Next.js-16.3.8-black?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![Groq](https://img.shields.io/badge/AI%20Provider-Groq%20API-orange)](https://groq.com/)
+[![Model](https://img.shields.io/badge/Model-Qwen%2027B-purple)](https://groq.com/)
+[![Tests](https://img.shields.io/badge/Tests-31%2F31%20Passing-brightgreen)](#11-automated-testing-suite)
 
-First, run the development server:
+> **ALGOTHON'26 — Problem Statement: ALG-AI-02 (Intelligent Document Investigator)**  
+> An evidence-grounded document analysis engine providing verifiable citations, real page-number tracking, cross-document conflict detection, and multi-turn inquiry history.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 1. Project Overview
+
+**DocuLens AI** is an intelligent document investigation workspace designed for researchers, legal analysts, and auditors. Unlike generic chat-with-PDF wrappers that often hallucinate citations or guess when documents disagree, DocuLens AI enforces strict evidence grounding, verifies extracted source quotes verbatim, detects cross-document contradictions, and flags insufficient evidence.
+
+---
+
+## 2. Problem Statement (ALG-AI-02)
+
+Modern knowledge workers frequently need to synthesize information across multiple documents (contracts, policies, financial disclosures) where:
+1. Standard LLMs hallucinate non-existent page numbers or fabricate citations.
+2. Contradictory statements (e.g., mismatched revenue figures or termination clauses) go unnoticed.
+3. Models generate answers even when the provided documents lack sufficient evidence.
+
+DocuLens AI directly addresses **ALG-AI-02** by implementing an evidence-first investigation pipeline that validates every cited quote against raw source passages and clearly separates grounded facts from unverified claims.
+
+---
+
+## 3. Key Features
+
+- **Multi-Format Document Extraction:** Ingests **PDF**, **TXT**, **MD**, and **DOCX** files up to 25 MB. Preserves 1-indexed page boundaries for PDFs and structured text chunking for text files.
+- **Natural-Language Inquiry:** Ask questions in plain English across single or multiple uploaded files simultaneously.
+- **Verifiable Citations & Quotes:** Every claim is paired with exact passage excerpts and verified PDF page numbers. Quotes are strictly matched against source text.
+- **Cross-Document Conflict Detection:** Automatically aligns passages discussing similar topics, dates, or figures across different documents, classifying discrepancies into *Direct Contradiction* or *Possible Conflict (Review)* side-by-side.
+- **Insufficient Evidence Warnings:** Displays an explicit amber status banner when documents do not contain enough verified evidence to answer conclusively.
+- **Multi-Turn Investigation History:** A conversation-based chat workspace where each inquiry preserves its own isolated citations and evidence panel state.
+
+---
+
+## 4. Architecture Diagram
+
+```mermaid
+flowchart TD
+    subgraph Ingestion["1. Document Ingestion & Parsing"]
+        A[Uploaded Files<br/>PDF, TXT, MD, DOCX] --> B[Server-Side Extractor<br/>/api/documents/extract]
+        B --> C[Preserve PDF Pages & Clean Text]
+        C --> D[Passage Chunking Engine]
+    end
+
+    subgraph QA_Flow["2. Evidence-Grounded Investigation Flow"]
+        D --> E[Keyword & Phrase Retrieval<br/>Top-K Relevance Scoring]
+        E -->|Relevant Passages + Query| F[Groq Qwen 27B Reasoning<br/>Strict Grounding Protocol]
+        F --> G[Citation & Quote Validator<br/>Normalized Contiguous Match]
+        G -->|Verified Citations| H[Grounded Answer<br/>Green Status Badge]
+        G -->|Failed Validation / Missing Data| I[Insufficient Evidence Notice<br/>Amber Status Badge]
+        H --> J[Multi-Turn Chat Workspace]
+        I --> J
+    end
+
+    subgraph Conflict_Flow["3. Cross-Document Conflict Analysis Flow"]
+        D -->|Passages across Different Docs| K[Topic & Entity Overlap Alignment]
+        K -->|Candidate Passage Pairs| L[Groq Discrepancy Classifier<br/>/api/conflicts]
+        L --> M[Side-by-Side Comparison Panel<br/>Neutral Claim A vs Claim B]
+    end
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 5. Technology Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Technology | Version | Purpose in Repository |
+| :--- | :--- | :--- |
+| **Next.js** | `16.3.8` | App Router framework, server-side API routes, Turbopack compiler |
+| **React** | `19.2.8` | Frontend UI components, state management |
+| **TypeScript** | `^5` | Strict static typing across models, API contracts, and components |
+| **Tailwind CSS** | `^4` | Editorial research styling system and responsive layout |
+| **Groq API** | Cloud SDK / REST | Fast server-side LLM inference (`qwen/qwen3.8-27b`) |
+| **unpdf** | `^1.8.1` | Server-side PDF text extraction and page boundary parsing |
+| **mammoth** | `^1.13.0` | Server-side `.docx` Microsoft Word document text extraction |
+| **lucide-react** | `^1.51.0` | Interface iconography |
+| **node:test** | Built-in | Deterministic unit and integration test runner |
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 6. Prerequisites & Local Installation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Prerequisites
+- **Node.js**: Version `18.18.0` or higher (Node 20+ recommended)
+- **npm**: Version `9.0.0` or higher
+- **Groq API Key**: Obtain a free API key from [Groq Console](https://console.groq.com)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Installation Steps
 
-## Deploy on Vercel
+```bash
+# 1. Clone the repository
+git clone https://github.com/amanshu999/DocuLens.git
+cd DocuLens
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# 2. Install dependencies
+npm install
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 7. Environment Variable Setup
+
+Create a `.env.local` file in the root directory:
+
+```bash
+# Required: Server-side Groq API key (Never exposed to the client)
+GROQ_API_KEY=gsk_your_actual_groq_api_key_here
+
+# Optional: Preferred model (defaults to qwen/qwen3.8-27b)
+GROQ_MODEL=qwen/qwen3.8-27b
+```
+
+> **Security Note:** All Groq API calls are executed strictly server-side in Next.js Route Handlers. `.env*` files are excluded in `.gitignore` and are never exposed to client bundles or browser consoles.
+
+---
+
+## 8. Available Commands
+
+Run the scripts defined in `package.json`:
+
+```bash
+# Start local development server (http://localhost:3000)
+npm run dev
+
+# Run automated test suite (31 deterministic tests)
+npm test
+
+# Run ESLint validation
+npm run lint
+
+# Compile production build
+npm run build
+
+# Start production server
+npm start
+```
+
+---
+
+## 9. Citation Verification & Uncertainty Safeguards
+
+DocuLens AI implements a multi-layered verification system to prevent false claims:
+
+1. **Page Number Integrity:** Real 1-indexed page boundaries are preserved for PDFs. TXT, MD, and DOCX files maintain `pageNumber: undefined` to prevent fabricated page numbers.
+2. **Passage Whitelisting:** Citations reference verified internal passage IDs. Any citation referencing an invalid or non-existent passage ID is rejected.
+3. **Normalized Contiguous Quote Verification:** The `normalizeForMatch` function validates quoted text against the raw passage text. If a model alters numbers, dates, or wording in an excerpt, the citation is discarded.
+4. **Truthful Status Derivation:** The `resolveInvestigationStatus` utility inspects the actual outcome:
+   - **Grounded (Green):** Only when the answer has verified supporting citations and no insufficiency flags.
+   - **Insufficient Evidence (Amber):** When no matching passages exist, the model reports missing context, or all candidate citations fail quote verification.
+   - **Failed (Red):** When an API error or network exception occurs, enabling a one-click retry.
+
+---
+
+## 10. Known Limitations
+
+- **Keyword Retrieval Scope:** Passage retrieval uses transparent keyword frequency and multi-word phrase matching (top-K = 6). Passages with non-overlapping vocabulary or purely semantic synonyms may not be ranked in top-K passages.
+- **Synthesis Nuance:** While supporting quotations and page numbers are strictly verified, high-level synthesized summaries rely on LLM language generation. Users should inspect the raw cited passages in the Evidence panel.
+- **Heuristic Conflict Alignment:** The two-stage conflict detector aligns candidate passages based on shared entities, metrics, and topics before invoking Groq to optimize latency and token costs.
+
+---
+
+## 11. Automated Testing Suite
+
+The repository contains **31 automated deterministic tests** executed via `npm test`:
+
+```text
+> node --test tests/extractor.test.mjs tests/investigate.test.mjs tests/conflicts.test.mjs
+
+✔ 6 Candidate Alignment & Cross-Document Conflict Tests passed
+✔ 10 PDF, TXT, MD, and DOCX Text Extractor Tests passed
+✔ 15 Passage Retrieval, Citation Validation, Groq Safety & Status Resolver Tests passed
+ℹ tests 31
+ℹ pass 31
+ℹ fail 0
+```
+
+### Test Coverage Breakdown:
+- **`tests/extractor.test.mjs` (10 tests):** PDF page boundary preservation, TXT/MD extraction, DOCX extraction, oversized file rejection (>25MB), empty file handling, corrupt PDF/DOCX handling.
+- **`tests/investigate.test.mjs` (15 tests):** Keyword extraction, passage retrieval scoring, legitimate citation validation, rejection of fabricated passage IDs, rejection of altered quotes, missing API key handling, empty retrieval handling, and status derivation tests (Grounded, Insufficient Evidence, Error).
+- **`tests/conflicts.test.mjs` (6 tests):** Topic alignment across different files, prevention of self-document pairing, conflict claim quote verification, and safety fallbacks.
+
+---
+
+## 12. Responsible AI & Disclosure
+
+- **AI Model:** Powered by `qwen/qwen3.8-27b` via Groq's high-speed LPU inference API.
+- **Data Privacy:** Documents are processed ephemerally in server-side memory. No document contents or embeddings are stored in third-party vector databases.
+- **Editorial Neutrality:** When cross-document conflicts are detected, both sides (Claim A and Claim B) are presented neutrally with source citations. The system does not decide which document is authoritative.
+- **Development Disclosure:** Developed using AI-assisted pair programming and deterministic test-driven development for ALGOTHON'26.
+
+---
+
+## 13. Judge Demo Workflow
+
+To verify DocuLens AI during hackathon evaluation:
+
+1. **Upload Test Documents:**
+   - In the left **Source Documents** panel, upload a PDF (e.g. quarterly report) and a TXT/DOCX file. Observe real-time page count and character extraction.
+2. **Ask a Grounded Inquiry:**
+   - Type a question related to the text (or click a sample query) and press **Enter**.
+   - Observe the question added to the conversation history, the input clearing, and the green **Grounded** response appearing with clickable citation tags.
+3. **Inspect Citations in Evidence Panel:**
+   - Click a citation chip in the response or switch tabs in the right **Evidence & Verification** panel. Inspect the exact page number and verbatim quote in the inspection modal.
+4. **Test Insufficient Evidence Handling:**
+   - Ask an unrelated question (e.g., *"What is the rocket launch schedule?"*).
+   - Observe the amber **Insufficient Evidence** badge and notice explaining that the files lack matching data.
+5. **Cross-Document Conflict Detection:**
+   - Upload two files with differing policies/dates.
+   - Open the **Conflicts** tab and click **"Scan Conflicts"**.
+   - Review the side-by-side comparison displaying Claim A and Claim B with source citations.
+
+---
+
+## 📄 License & Attribution
+
+Built for **ALGOTHON'26 — Problem Statement ALG-AI-02**.  
+All rights reserved by the repository owner.

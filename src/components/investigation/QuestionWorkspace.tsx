@@ -14,6 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 import { InvestigationMessage, EvidenceCitation } from "@/types";
+import { resolveInvestigationStatus } from "@/lib/groq";
 
 interface QuestionWorkspaceProps {
   hasDocuments: boolean;
@@ -200,24 +201,47 @@ export default function QuestionWorkspace({
                     </div>
 
                     <div className="shrink-0">
-                      {msg.status === "pending" && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-medium border border-indigo-200 flex items-center gap-1">
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          Analyzing
-                        </span>
-                      )}
-                      {msg.status === "error" && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-50 text-red-700 font-medium border border-red-200 flex items-center gap-1">
-                          <AlertCircle className="w-3 h-3" />
-                          Failed
-                        </span>
-                      )}
-                      {msg.status === "success" && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium border border-emerald-200 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Grounded
-                        </span>
-                      )}
+                      {(() => {
+                        const resolved = resolveInvestigationStatus(
+                          msg.status,
+                          msg.result,
+                          msg.errorMessage
+                        );
+
+                        if (resolved === "pending") {
+                          return (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-medium border border-indigo-200 flex items-center gap-1">
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              Analyzing
+                            </span>
+                          );
+                        }
+
+                        if (resolved === "error") {
+                          return (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-50 text-red-700 font-medium border border-red-200 flex items-center gap-1">
+                              <AlertCircle className="w-3 h-3" />
+                              Failed
+                            </span>
+                          );
+                        }
+
+                        if (resolved === "insufficient_evidence") {
+                          return (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 font-medium border border-amber-200 flex items-center gap-1">
+                              <AlertTriangle className="w-3 h-3 text-amber-600" />
+                              Insufficient Evidence
+                            </span>
+                          );
+                        }
+
+                        return (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium border border-emerald-200 flex items-center gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Grounded
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
 

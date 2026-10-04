@@ -8,6 +8,7 @@ import {
 import {
   validateAndEnforceCitations,
   executeGroqInvestigation,
+  resolveInvestigationStatus,
 } from "../src/lib/groq.ts";
 
 test("1. Passage Chunking — preserves real PDF page numbers", () => {
@@ -248,3 +249,42 @@ test("11. Groq Client — handles empty passages with immediate insufficient evi
   assert.equal(result.citations.length, 0);
   assert.ok(result.answer.includes("No matching information"));
 });
+
+test("12. Status Resolver — derives 'grounded' for supported answer with valid citations", () => {
+  const mockResult = {
+    isInsufficientEvidence: false,
+    citations: [{ id: "cit_1", excerpt: "Verified quote" }],
+  };
+
+  const status = resolveInvestigationStatus("success", mockResult);
+  assert.equal(status, "grounded", "Supported answer with valid citations must be resolved as 'grounded'");
+});
+
+test("13. Status Resolver — derives 'insufficient_evidence' when answer reports insufficient evidence", () => {
+  const mockResult = {
+    isInsufficientEvidence: true,
+    citations: [],
+  };
+
+  const status = resolveInvestigationStatus("success", mockResult);
+  assert.equal(status, "insufficient_evidence", "Insufficient evidence answer must NEVER be labelled 'grounded'");
+});
+
+test("14. Status Resolver — derives 'insufficient_evidence' when citations are empty/rejected even if API succeeded", () => {
+  const mockResultWithNoCitations = {
+    isInsufficientEvidence: false,
+    citations: [], // All citations failed validation or none provided
+  };
+
+  const status = resolveInvestigationStatus("success", mockResultWithNoCitations);
+  assert.equal(status, "insufficient_evidence", "An answer with 0 validated citations must be labelled 'insufficient_evidence'");
+});
+
+test("15. Status Resolver — derives 'error' for failed network / API requests", () => {
+  const status1 = resolveInvestigationStatus("error", null, "Network connection lost");
+  assert.equal(status1, "error");
+
+  const status2 = resolveInvestigationStatus("pending", null);
+  assert.equal(status2, "pending");
+});
+
