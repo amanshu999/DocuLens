@@ -55,7 +55,7 @@ DocuLens AI directly addresses **ALG-AI-02** by implementing an evidence-first i
 *Automated cross-document contradiction detection presenting conflicting claims from multiple documents side-by-side with verbatim excerpts and source attribution.*
 
 ### 4. Insufficient Evidence Safeguards
-![Insufficient Evidence Handling](public/screenshots/insufficient-evidence.png)
+![Insufficient Evidence Handling](public/screenshots/insufficient-evidence-v2.png)
 *Truthful handling of out-of-scope or unanswerable queries displaying an amber advisory banner and status badge when supporting evidence is missing.*
 
 ---
