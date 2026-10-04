@@ -241,4 +241,4 @@ To verify DocuLens AI during hackathon evaluation:
 ## 📄 License & Attribution
 
 Built for **ALGOTHON'26 — Problem Statement ALG-AI-02**.  
-All rights reserved by the repository owner.
+All rights reserved by the repository owner @amanshu999
