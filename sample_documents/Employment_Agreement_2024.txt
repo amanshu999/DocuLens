@@ -1,0 +1,16 @@
+DOCULENS AI SAMPLE DOCUMENT 2: STANDARD EMPLOYMENT AGREEMENT (2024)
+Agreement Reference: AGR-ENG-2024-09
+Applicable Role: Senior Software Engineering Staff
+Effective Date: March 15, 2024
+
+1. REMOTE WORK & WORKSPACE REIMBURSEMENT
+The employee shall receive an annual remote workspace allowance capped at $800 per fiscal year. This allowance is provided exclusively for approved home office supplies and verified network utility expenses upon manager sign-off.
+
+2. VACATION ACCRUAL & ANNUAL LEAVE
+In consideration of senior engineering responsibilities, the employee is entitled to 25 days of annual paid time off per calendar year. Paid leave must be scheduled in coordination with project leadership to avoid scheduling conflicts during sprint delivery periods.
+
+3. NOTICE OF TERMINATION
+Either party may terminate the employment relationship by providing a 60-day written notice to the other party. In lieu of full notice, the company reserves the right to provide compensation covering the unfulfilled notice timeframe.
+
+4. SIGNING BONUS & VESTING SCHEDULE
+The employee is awarded a one-time lump-sum signing bonus of $10,000. This bonus is distributed alongside the first regular payroll cycle following the successful completion of the initial 90-day probationary evaluation period.
